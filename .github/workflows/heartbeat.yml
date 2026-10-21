@@ -1,7 +1,7 @@
 # This repository watches itself with its own action.
 #
-# It is also the demo: open any run and you can see the start ping, the finish
-# ping, and what the post step reports when the job fails on purpose.
+# It doubles as the demo: open any run and you can see the start ping, the
+# finish ping, and what the post step reports when the job fails on purpose.
 name: heartbeat
 on:
   schedule:

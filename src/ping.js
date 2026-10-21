@@ -1,12 +1,12 @@
-// ==================== CE ADRESA SE APELEAZA SI CAND ====================
+// ==================== WHICH URL, AND WHEN ====================
 //
-// Tinut separat de intrarile GitHub ca sa poata fi testat fara un runner.
-// Contractul e cel al Healthchecks, pe care CronJobPro il implementeaza la fel:
-//   <base>         rularea s-a terminat cu bine
-//   <base>/start   rularea a inceput
-//   <base>/fail    rularea a esuat
+// Kept apart from the GitHub plumbing so it can be tested without a runner.
+// The contract is the one Healthchecks established and CronJobPro implements:
+//   <base>         the run finished, and finished well
+//   <base>/start   the run began
+//   <base>/fail    the run finished badly
 
-/** Adresa de ping, fie data intreaga, fie construita din jeton. */
+/** The ping URL, either given whole or built from a token. */
 export function resolveBaseUrl({ url, token, server }) {
   const trimmed = (url ?? '').trim();
   if (trimmed) return trimmed.replace(/\/+$/, '');
@@ -17,16 +17,17 @@ export function resolveBaseUrl({ url, token, server }) {
 }
 
 /**
- * Ce se trimite la finalul jobului.
+ * What to send when the job is over.
  *
- * `status` vine din `${{ job.status }}`, iar expresia e reevaluata cand ruleaza
- * pasul final — verificat pe un runner real: pe un job cazut, pasul principal
- * citeste 'success' si cel final 'failure'. De asta starea nu se salveaza din
- * pasul principal, ar ingheta la 'success'.
+ * `status` comes from the job-status expression in the workflow, and GitHub
+ * re-evaluates it when the post step runs. Verified on a real runner: in a
+ * failing job the main step reads 'success' and the post step reads 'failure'
+ * from the same input. That is why nothing is carried over from the main step,
+ * where it would be frozen at 'success'.
  *
- * Fara status explicit raportam reusita, dar spunem raspicat in jurnal ca
- * esecurile nu vor fi raportate. Alternativa, sa nu trimitem nimic, ar aprinde
- * o alarma falsa la fiecare rulare corecta a cuiva caruia i-a scapat o linie.
+ * With no status at all we report success and say loudly that failures will go
+ * unreported. The alternative, sending nothing, would raise a false alarm on
+ * every correct run of anyone who missed one line.
  */
 export function endOfRunPing(baseUrl, status) {
   const s = (status ?? '').trim().toLowerCase();
@@ -35,7 +36,7 @@ export function endOfRunPing(baseUrl, status) {
   return { url: baseUrl, outcome: 'unknown', warn: true };
 }
 
-/** Jetonul nu are ce cauta in jurnalul public al nimanui. */
+/** Nobody's token belongs in a public build log. */
 export function redact(text) {
   return String(text).replace(/(\/ping\/)[A-Za-z0-9_-]{8,}/g, '$1***');
 }

@@ -1,8 +1,8 @@
-// ==================== TRIMITEREA PROPRIU-ZISA ====================
+// ==================== SENDING IT ====================
 //
-// Regula de capatai: aceasta actiune nu are voie sa strice workflow-ul nimanui.
-// Orice esec al pingului se logheaza si se inghite. Un ajutor de monitorizare
-// care pica build-ul e mai rau decat lipsa lui.
+// The rule this file exists to keep: this action must never break anyone's
+// workflow. Every ping failure is logged and swallowed. A monitoring helper
+// that fails your build is worse than no monitoring helper.
 
 import { redact } from './ping.js';
 
@@ -17,20 +17,20 @@ export async function ping(url, { timeoutMs = 10_000, retries = 2, log = console
         headers: { 'user-agent': 'cronjobpro-heartbeat-action' },
       });
       if (res.ok) {
-        log(`heartbeat trimis: ${redact(url)} (${res.status})`);
+        log(`Heartbeat sent: ${redact(url)} (${res.status})`);
         return true;
       }
-      // 404 inseamna jeton necunoscut. Reincercarea nu-l face cunoscut.
+      // 404 means the token is unknown. Retrying will not make it known.
       if (res.status === 404) {
-        log(`::warning::Jeton necunoscut pentru ${redact(url)} (404). Verifica adresa sau jetonul.`);
+        log(`::warning::Unknown token for ${redact(url)} (404). Check the URL or the token.`);
         return false;
       }
-      log(`heartbeat respins cu ${res.status}, incercarea ${attempt + 1} din ${retries + 1}`);
+      log(`Heartbeat rejected with ${res.status}, attempt ${attempt + 1} of ${retries + 1}`);
     } catch (err) {
-      log(`heartbeat nereusit (${err?.name ?? 'eroare'}), incercarea ${attempt + 1} din ${retries + 1}`);
+      log(`Heartbeat failed (${err?.name ?? 'error'}), attempt ${attempt + 1} of ${retries + 1}`);
     }
     if (attempt < retries) await sleep(1000 * 2 ** attempt);
   }
-  log(`::warning::Heartbeat netrimis catre ${redact(url)}. Workflow-ul continua normal.`);
+  log(`::warning::Heartbeat not delivered to ${redact(url)}. The workflow carries on regardless.`);
   return false;
 }

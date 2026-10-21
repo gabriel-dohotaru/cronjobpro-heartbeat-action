@@ -1,6 +1,6 @@
-// Proba pe bune: pornim un server care noteaza ce primeste, rulam pasii
-// actiunii ca procese separate exact cum ii ruleaza GitHub, si verificam ce a
-// ajuns la celalalt capat.
+// The real thing: start a server that records what it receives, run the action's
+// steps as separate processes exactly as GitHub runs them, and check what arrived
+// at the other end.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import http from 'node:http';
@@ -23,52 +23,52 @@ async function withRecorder(fn) {
 
 const env = (base, extra) => ({ ...process.env, INPUT_URL: base, INPUT_RETRIES: '0', INPUT_TIMEOUT_MS: '3000', ...extra });
 
-test('pasul principal anunta pornirea', async () => {
+test('the main step announces the start', async () => {
   await withRecorder(async (base, hits) => {
     await run(process.execPath, [step('main.js')], { env: env(base) });
     assert.deepEqual(hits, ['POST /ping/tok/start']);
   });
 });
 
-test('pornirea poate fi oprita', async () => {
+test('the start signal can be turned off', async () => {
   await withRecorder(async (base, hits) => {
     await run(process.execPath, [step('main.js')], { env: env(base, { 'INPUT_PING-START': 'false' }) });
     assert.deepEqual(hits, []);
   });
 });
 
-test('un job reusit raporteaza la adresa de baza', async () => {
+test('a successful job reports to the base URL', async () => {
   await withRecorder(async (base, hits) => {
     await run(process.execPath, [step('post.js')], { env: env(base, { INPUT_STATUS: 'success' }) });
     assert.deepEqual(hits, ['POST /ping/tok']);
   });
 });
 
-test('un job cazut raporteaza la /fail', async () => {
+test('a failed job reports to /fail', async () => {
   await withRecorder(async (base, hits) => {
     await run(process.execPath, [step('post.js')], { env: env(base, { INPUT_STATUS: 'failure' }) });
     assert.deepEqual(hits, ['POST /ping/tok/fail']);
   });
 });
 
-test('un job anulat raporteaza tot la /fail', async () => {
+test('a cancelled job also reports to /fail', async () => {
   await withRecorder(async (base, hits) => {
     await run(process.execPath, [step('post.js')], { env: env(base, { INPUT_STATUS: 'cancelled' }) });
     assert.deepEqual(hits, ['POST /ping/tok/fail']);
   });
 });
 
-test('un server mort nu pica pasul', async () => {
+test('an unreachable endpoint does not fail the step', async () => {
   const { stdout } = await run(process.execPath, [step('post.js')],
     { env: { ...process.env, INPUT_URL: 'http://127.0.0.1:1/ping/tok', INPUT_STATUS: 'success', INPUT_RETRIES: '0', INPUT_TIMEOUT_MS: '1000' } });
-  assert.match(stdout, /Heartbeat netrimis/);
+  assert.match(stdout, /Heartbeat not delivered/);
 });
 
-test('fara adresa si fara jeton, pasul principal se opreste cu eroare', async () => {
+test('with neither URL nor token the main step exits with an error', async () => {
   await assert.rejects(() => run(process.execPath, [step('main.js')], { env: { ...process.env, INPUT_URL: '', INPUT_TOKEN: '' } }));
 });
 
-test('jetonul nu apare in ce se scrie in jurnal', async () => {
+test('the token does not appear in anything written to the log', async () => {
   await withRecorder(async (base) => {
     const url = base.replace('/ping/tok', '/ping/JETON_FOARTE_SECRET_123');
     const { stdout } = await run(process.execPath, [step('post.js')], { env: env(url, { INPUT_STATUS: 'success' }) });

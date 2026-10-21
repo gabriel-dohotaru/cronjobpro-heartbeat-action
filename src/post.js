@@ -1,5 +1,6 @@
-// Pasul final: ruleaza intotdeauna, inclusiv cand jobul a cazut, si raporteaza
-// rezultatul REAL. `status` se reevalueaza aici, nu e cel din pasul principal.
+// The post step: runs whatever happened, including a job that failed, and
+// reports the REAL outcome. `status` is re-evaluated here; it is not the value
+// the main step saw.
 import { resolveBaseUrl, endOfRunPing } from './ping.js';
 import { ping } from './http.js';
 
@@ -9,8 +10,8 @@ const base = resolveBaseUrl({ url: input('url'), token: input('token'), server: 
 if (base) {
   const { url, outcome, warn } = endOfRunPing(base, input('status'));
   if (warn) {
-    console.log('::warning::Nu am primit `status: ${{ job.status }}`, asa ca raportez reusita. Esecurile NU vor fi raportate pana nu adaugi linia aceea.');
+    console.log('::warning::No job status was passed, so this run is reported as a success. Failures will NOT be reported until you pass the job status input. See the README.');
   }
-  console.log(`Rularea s-a incheiat cu: ${outcome}`);
+  console.log(`Run finished: ${outcome}`);
   await ping(url, { timeoutMs: Number(input('timeout-ms') || 10_000), retries: Number(input('retries') || 2) });
 }
