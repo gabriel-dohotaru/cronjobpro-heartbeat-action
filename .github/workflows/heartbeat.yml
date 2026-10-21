@@ -16,16 +16,18 @@ on:
 jobs:
   nightly:
     runs-on: ubuntu-latest
+    # Job level, not step level: a step's own `if:` cannot see env set on that
+    # same step, so the skip would never trigger and forks would fail here.
+    env:
+      HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Report this run to the monitor
-        if: ${{ env.HEARTBEAT_URL != '' }}
+        if: env.HEARTBEAT_URL != ''
         uses: ./
-        env:
-          HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
         with:
-          url: ${{ secrets.HEARTBEAT_URL }}
+          url: ${{ env.HEARTBEAT_URL }}
           status: ${{ job.status }}
 
       - name: The work this workflow actually exists to do
