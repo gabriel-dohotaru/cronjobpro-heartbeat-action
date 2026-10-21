@@ -16,3 +16,17 @@ jobs:
         with: { node-version: '${{ matrix.node }}' }
       # No dependencies to install. That is the point.
       - run: node --test test/*.test.mjs
+
+  # Uses the PUBLISHED reference, not `./`, so this also proves that what a
+  # stranger pulls down actually loads and runs. Pointed at a URL that answers
+  # nothing useful: the action must log and carry on, never fail the job.
+  published-ref:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: gabriel-dohotaru/cronjobpro-heartbeat-action@v1
+        with:
+          url: https://example.com/ping/not-a-real-token
+          status: ${{ job.status }}
+          retries: '0'
+          timeout-ms: '5000'
+      - run: echo "The job carries on, which is the whole point."
