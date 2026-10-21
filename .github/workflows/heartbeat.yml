@@ -1,0 +1,38 @@
+# This repository watches itself with its own action.
+#
+# It is also the demo: open any run and you can see the start ping, the finish
+# ping, and what the post step reports when the job fails on purpose.
+name: heartbeat
+on:
+  schedule:
+    - cron: '17 6 * * *'
+  workflow_dispatch:
+    inputs:
+      fail_on_purpose:
+        description: 'Fail the job deliberately, to watch the failure get reported'
+        type: boolean
+        default: false
+
+jobs:
+  nightly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Report this run to the monitor
+        if: ${{ env.HEARTBEAT_URL != '' }}
+        uses: ./
+        env:
+          HEARTBEAT_URL: ${{ secrets.HEARTBEAT_URL }}
+        with:
+          url: ${{ secrets.HEARTBEAT_URL }}
+          status: ${{ job.status }}
+
+      - name: The work this workflow actually exists to do
+        run: node --test test/
+
+      - name: Fail on purpose
+        if: ${{ inputs.fail_on_purpose }}
+        run: |
+          echo "Failing deliberately. The post step should report this as a failure."
+          exit 1

@@ -1,0 +1,9 @@
+{
+  "name": "cronjobpro-heartbeat-action",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GitHub tells you a scheduled run failed. It cannot tell you the run never happened.",
+  "scripts": { "test": "node --test test/" },
+  "license": "MIT"
+}

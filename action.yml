@@ -1,11 +1,38 @@
-name: 'Post-step status probe'
-description: 'Throwaway experiment: what can a post step actually see about the job outcome?'
+name: 'Scheduled Run Heartbeat'
+description: 'GitHub tells you a scheduled run failed. It cannot tell you a run never happened. This does.'
+author: 'CronJobPro'
+branding:
+  icon: 'activity'
+  color: 'green'
+
 inputs:
-  status:
-    description: 'passed as a normal input'
+  url:
+    description: 'Full ping URL. Works with any heartbeat service (CronJobPro, Healthchecks, and anything else using the same contract). Use this or `token`.'
     required: false
-    default: 'nimic'
+  token:
+    description: 'CronJobPro heartbeat token, if you would rather not paste a whole URL. Ignored when `url` is set.'
+    required: false
+  server:
+    description: 'Base URL of the service, when using `token`.'
+    required: false
+    default: 'https://api.cronjobpro.com'
+  status:
+    description: 'Pass `${{ job.status }}` so failures are reported. Without it, every run reports success.'
+    required: false
+  ping-start:
+    description: 'Also signal when the run starts, which is what makes duration and overrun visible.'
+    required: false
+    default: 'true'
+  timeout-ms:
+    description: 'How long to wait for the heartbeat endpoint.'
+    required: false
+    default: '10000'
+  retries:
+    description: 'Retries per ping, with backoff.'
+    required: false
+    default: '2'
+
 runs:
-  using: node20
-  main: probe-main.js
-  post: probe-post.js
+  using: 'node20'
+  main: 'src/main.js'
+  post: 'src/post.js'
