@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "description": "GitHub tells you a scheduled run failed. It cannot tell you the run never happened.",
-  "scripts": { "test": "node --test test/" },
+  "scripts": { "test": "node --test test/*.test.mjs" },
   "license": "MIT"
 }

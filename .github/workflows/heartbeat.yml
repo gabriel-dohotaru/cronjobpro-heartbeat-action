@@ -29,7 +29,7 @@ jobs:
           status: ${{ job.status }}
 
       - name: The work this workflow actually exists to do
-        run: node --test test/
+        run: node --test test/*.test.mjs
 
       - name: Fail on purpose
         if: ${{ inputs.fail_on_purpose }}
