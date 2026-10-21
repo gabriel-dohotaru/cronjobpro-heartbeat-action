@@ -1,0 +1,6 @@
+name: 'Post-step status probe'
+description: 'Throwaway experiment: what can a post step actually see about the job outcome?'
+runs:
+  using: node20
+  main: probe-main.js
+  post: probe-post.js
