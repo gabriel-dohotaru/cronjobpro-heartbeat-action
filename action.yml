@@ -17,7 +17,7 @@ inputs:
     required: false
     default: 'https://api.cronjobpro.com'
   status:
-    description: 'Pass `${{ job.status }}` so failures are reported. Without it, every run reports success.'
+    description: 'Pass the job status expression from your workflow so failures are reported. Without it, every run reports success. See the README.'
     required: false
   ping-start:
     description: 'Also signal when the run starts, which is what makes duration and overrun visible.'
@@ -33,6 +33,6 @@ inputs:
     default: '2'
 
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'src/main.js'
   post: 'src/post.js'
