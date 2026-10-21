@@ -1,5 +1,10 @@
 name: 'Post-step status probe'
 description: 'Throwaway experiment: what can a post step actually see about the job outcome?'
+inputs:
+  status:
+    description: 'passed as a normal input'
+    required: false
+    default: 'nimic'
 runs:
   using: node20
   main: probe-main.js
